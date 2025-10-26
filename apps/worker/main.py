@@ -18,6 +18,36 @@ def get_team_id(conn: psycopg.Connection, job_id: str) -> str:
         return row[0] if row else ""
 
 
+def select_runner(conn: psycopg.Connection) -> str | None:
+    sql = """
+    WITH latest AS (
+      SELECT DISTINCT ON (runner_id)
+        runner_id, cpu_usage, gpu_usage, thermal_state, recorded_at
+      FROM runner_metrics
+      ORDER BY runner_id, recorded_at DESC
+    )
+    SELECT r.id
+    FROM runners r
+    LEFT JOIN latest m ON m.runner_id = r.id
+    WHERE r.status = 'idle'
+    ORDER BY
+      CASE m.thermal_state
+        WHEN 'nominal' THEN 0
+        WHEN 'fair' THEN 1
+        WHEN 'serious' THEN 2
+        WHEN 'critical' THEN 3
+        ELSE 4
+      END,
+      COALESCE(m.cpu_usage, 1.0) + COALESCE(m.gpu_usage, 1.0) ASC,
+      r.last_seen DESC NULLS LAST
+    LIMIT 1
+    """
+    with conn.cursor() as cur:
+        cur.execute(sql)
+        row = cur.fetchone()
+        return row[0] if row else None
+
+
 def process_job(conn: psycopg.Connection, job_id: str, max_running_per_team: int) -> None:
     team_id = get_team_id(conn, job_id)
     if not team_id:
@@ -27,9 +57,22 @@ def process_job(conn: psycopg.Connection, job_id: str, max_running_per_team: int
         r = redis.from_url(os.getenv("REDIS_URL", "redis://localhost:6379/0"))
         r.rpush("queue:jobs:default", job_id)
         return
+    runner_id = select_runner(conn)
+    if not runner_id:
+        r = redis.from_url(os.getenv("REDIS_URL", "redis://localhost:6379/0"))
+        r.rpush("queue:jobs:default", job_id)
+        return
     with conn.cursor() as cur:
-        cur.execute("UPDATE jobs SET state='RUNNING', started_at=now() WHERE id=%s AND state='QUEUED'", (job_id,))
-        cur.execute("UPDATE jobs SET state='SUCCEEDED', finished_at=now() WHERE id=%s AND state='RUNNING'", (job_id,))
+        cur.execute(
+            "UPDATE jobs SET state='RUNNING', started_at=now(), runner_id=%s WHERE id=%s AND state='QUEUED'",
+            (runner_id, job_id),
+        )
+        cur.execute("UPDATE runners SET status='busy', last_seen=now() WHERE id=%s", (runner_id,))
+        cur.execute(
+            "UPDATE jobs SET state='SUCCEEDED', finished_at=now() WHERE id=%s AND state='RUNNING'",
+            (job_id,),
+        )
+        cur.execute("UPDATE runners SET status='idle', last_seen=now() WHERE id=%s", (runner_id,))
         conn.commit()
 
 
