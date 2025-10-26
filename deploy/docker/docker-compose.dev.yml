@@ -43,6 +43,7 @@ services:
     volumes:
       - ../../apps/api:/app/apps/api
       - ../../packages/common:/app/packages/common
+      - ../../data:/data
 
   worker:
     build:
@@ -69,6 +70,7 @@ services:
       - ../../apps/web:/app/apps/web
       - /app/apps/web/node_modules
       - ../../packages/common:/app/packages/common
+      - ../../data:/data:ro
 
   nginx:
     image: nginx:1.27

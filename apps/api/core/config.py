@@ -1,0 +1,23 @@
+from functools import lru_cache
+from pydantic_settings import BaseSettings
+from pydantic import Field
+
+
+class Settings(BaseSettings):
+    database_url: str = Field(alias="DATABASE_URL")
+    redis_url: str = Field(alias="REDIS_URL")
+    allowed_origins: str = Field(default="http://localhost:3000", alias="ALLOWED_ORIGINS")
+    jwt_secret: str = Field(default="change_me", alias="JWT_SECRET")
+    jwt_expire_min: int = Field(default=60, alias="JWT_EXPIRE_MIN")
+    data_root: str = Field(default="/data", alias="DATA_ROOT")
+
+    model_config = {
+        "env_file": ".env",
+        "extra": "ignore",
+    }
+
+
+@lru_cache()
+def get_settings() -> Settings:
+    return Settings()  # type: ignore[arg-type]
+
