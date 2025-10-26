@@ -1,10 +1,21 @@
 from datetime import datetime
+from typing import Any
 import yaml
 from sqlalchemy.orm import Session
 
 from apps.api.models.job import Job
 from apps.api.schemas.job import JobCreate, JobSpec
 from apps.api.clients.redis_client import get_redis
+from apps.api.core.config import get_settings
+
+
+def _parse_wall_time_to_seconds(value: Any) -> int:
+    if isinstance(value, (int, float)):
+        return int(value)
+    if isinstance(value, str) and value.count(":") == 2:
+        h, m, s = value.split(":")
+        return int(h) * 3600 + int(m) * 60 + int(s)
+    raise ValueError("invalid wall_time format")
 
 
 def parse_job_create(body: JobCreate) -> JobSpec:
@@ -17,6 +28,11 @@ def parse_job_create(body: JobCreate) -> JobSpec:
 
 
 def create_job(db: Session, spec: JobSpec) -> Job:
+    settings = get_settings()
+    if spec.limits and "wall_time" in spec.limits:
+        seconds = _parse_wall_time_to_seconds(spec.limits["wall_time"])  # type: ignore[index]
+        if seconds > settings.max_wall_time_sec:
+            raise ValueError("wall_time exceeds max policy")
     job = Job(
         name=spec.name,
         owner_id=spec.owner,

@@ -10,6 +10,8 @@ class Settings(BaseSettings):
     jwt_secret: str = Field(default="change_me", alias="JWT_SECRET")
     jwt_expire_min: int = Field(default=60, alias="JWT_EXPIRE_MIN")
     data_root: str = Field(default="/data", alias="DATA_ROOT")
+    max_concurrent_running_per_team: int = Field(default=2, alias="MAX_CONCURRENT_RUNNING_PER_TEAM")
+    max_wall_time_sec: int = Field(default=7200, alias="MAX_WALL_TIME_SEC")
 
     model_config = {
         "env_file": ".env",
