@@ -6,7 +6,7 @@ from apps.api.core.db import get_session
 from apps.api.storage.artifacts import write_artifact, list_artifacts, read_artifact
 from apps.api.storage.logs import read_log
 from apps.api.schemas.job import JobCreate, JobOut
-from apps.api.services.job_service import parse_job_create, create_job, get_job
+from apps.api.services.job_service import parse_job_create, create_job, get_job, cancel_job
 
 
 router = APIRouter()
@@ -55,6 +55,14 @@ def submit_job(body: JobCreate, db: Session = Depends(get_session)):
 @router.get("/jobs/{job_id}", response_model=JobOut)
 def get_job_status(job_id: str, db: Session = Depends(get_session)):
     job = get_job(db, job_id)
+    if not job:
+        raise HTTPException(status_code=404, detail="Not found")
+    return JobOut.model_validate(job)
+
+
+@router.post("/jobs/{job_id}/cancel", response_model=JobOut)
+def cancel_job_endpoint(job_id: str, db: Session = Depends(get_session)):
+    job = cancel_job(db, job_id)
     if not job:
         raise HTTPException(status_code=404, detail="Not found")
     return JobOut.model_validate(job)

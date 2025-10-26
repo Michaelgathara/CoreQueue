@@ -1,5 +1,6 @@
 from pydantic import BaseModel, Field
 from typing import Any, Literal
+from datetime import datetime
 
 
 class JobSpec(BaseModel):
@@ -27,9 +28,9 @@ class JobOut(BaseModel):
     owner_id: str
     priority: str
     state: str
-    queued_at: str | None = None
-    started_at: str | None = None
-    finished_at: str | None = None
+    queued_at: datetime | None = None
+    started_at: datetime | None = None
+    finished_at: datetime | None = None
 
     class Config:
         from_attributes = True

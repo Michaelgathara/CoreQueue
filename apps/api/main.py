@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from apps.api.core.config import get_settings
 from apps.api.core.paths import ensure_dirs
-from apps.api.routers import health, jobs, runners
+from apps.api.routers import health, jobs, runners, metrics
 
 
 def get_allowed_origins() -> list[str]:
@@ -31,4 +31,5 @@ def on_startup() -> None:
 app.include_router(health.router)
 app.include_router(jobs.router)
 app.include_router(runners.router)
+app.include_router(metrics.router)
 
