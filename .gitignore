@@ -1,3 +1,38 @@
+# Node
+node_modules/
+.next/
+out/
+apps/web/.next/
+apps/web/node_modules/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+.pytest_cache/
+
+# Env
+.env
+.env.local
+.env.*.local
+
+# Logs
+logs/
+*.log
+
+# Docker
+dist/
+
+# Mac
+.DS_Store
+
+# Editors
+.vscode/
+.idea/
+
+# Coverage
+coverage/
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
