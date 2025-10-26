@@ -56,7 +56,9 @@ services:
       - api
     ports:
       - "3000:3000"
-    command: ["pnpm","start","-p","3000"]
+    environment:
+      - PORT=3000
+    command: ["npm","run","start"]
 
   nginx:
     image: nginx:1.27
