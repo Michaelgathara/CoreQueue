@@ -1,0 +1,74 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - db_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7
+
+  minio:
+    image: quay.io/minio/minio:RELEASE.2025-01-05T00-00-00Z
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ACCESS_KEY}
+      MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY}
+    volumes:
+      - minio_data:/data
+
+  api:
+    build:
+      context: ../..
+      dockerfile: deploy/docker/api.Dockerfile
+    env_file:
+      - ../../.env
+    depends_on:
+      - db
+      - redis
+      - minio
+    ports:
+      - "8000:8000"
+
+  worker:
+    build:
+      context: ../..
+      dockerfile: deploy/docker/worker.Dockerfile
+    env_file:
+      - ../../.env
+    depends_on:
+      - api
+      - db
+      - redis
+
+  web:
+    build:
+      context: ../..
+      dockerfile: deploy/docker/web.Dockerfile
+    env_file:
+      - ../../.env
+    depends_on:
+      - api
+    ports:
+      - "3000:3000"
+    command: ["pnpm","start","-p","3000"]
+
+  nginx:
+    image: nginx:1.27
+    volumes:
+      - ../../infra/nginx/nginx.local.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - api
+      - web
+    ports:
+      - "80:80"
+
+volumes:
+  db_data: {}
+  minio_data: {}
+
