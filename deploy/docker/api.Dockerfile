@@ -16,7 +16,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 COPY apps/api/pyproject.toml ./apps/api/pyproject.toml
 COPY apps/api/uv.lock ./apps/api/uv.lock
 
-RUN uv sync --frozen --no-install-project --directory apps/api
+RUN uv sync --directory apps/api
 
 COPY apps/api ./apps/api
 COPY packages/common ./packages/common

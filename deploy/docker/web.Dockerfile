@@ -4,13 +4,13 @@ WORKDIR /app
 
 ENV NEXT_TELEMETRY_DISABLED=1
 
-# Install deps
+# Copy sources first
 COPY apps/web/package.json apps/web/pnpm-lock.yaml ./apps/web/
-RUN corepack enable && cd apps/web && pnpm i
-
-# Copy sources
 COPY apps/web ./apps/web
 COPY packages/common ./packages/common
+
+# Install deps after sources are in place
+RUN corepack enable && cd apps/web && pnpm i
 
 WORKDIR /app/apps/web
 
