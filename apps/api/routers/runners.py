@@ -1,13 +1,13 @@
 from datetime import datetime
-from fastapi import APIRouter, HTTPException, Depends
+
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from apps.api.core.db import get_session
-from apps.api.models.runner import Runner
-from apps.api.models.metric import RunnerMetric
-from apps.api.models.job import Job
 from apps.api.clients.redis_client import get_redis
-
+from apps.api.core.db import get_session
+from apps.api.models.job import Job
+from apps.api.models.metric import RunnerMetric
+from apps.api.models.runner import Runner
 
 router = APIRouter()
 
@@ -21,10 +21,7 @@ def register_runner(body: dict, db: Session = Depends(get_session)):
     if not name or not host:
         raise HTTPException(status_code=400, detail="name and host required")
     existing = (
-        db.query(Runner)
-        .filter(Runner.name == name)
-        .filter(Runner.host == host)
-        .first()
+        db.query(Runner).filter(Runner.name == name).filter(Runner.host == host).first()
     )
     if existing:
         return {"id": existing.id}
@@ -38,7 +35,12 @@ def register_runner(body: dict, db: Session = Depends(get_session)):
 @router.get("/runners")
 def list_runners(db: Session = Depends(get_session)):
     rows = db.query(Runner).all()
-    return {"runners": [{"id": r.id, "name": r.name, "status": r.status, "last_seen": r.last_seen} for r in rows]}
+    return {
+        "runners": [
+            {"id": r.id, "name": r.name, "status": r.status, "last_seen": r.last_seen}
+            for r in rows
+        ]
+    }
 
 
 @router.post("/runners/telemetry")
@@ -55,7 +57,14 @@ def ingest_telemetry(body: dict, db: Session = Depends(get_session)):
         raise HTTPException(status_code=404, detail="runner not found")
     r.last_seen = datetime.utcnow()
     db.add(r)
-    m = RunnerMetric(runner_id=runner_id, cpu_usage=cpu, gpu_usage=gpu, mem_gb=mem, thermal_state=thermal, recorded_at=datetime.utcnow())
+    m = RunnerMetric(
+        runner_id=runner_id,
+        cpu_usage=cpu,
+        gpu_usage=gpu,
+        mem_gb=mem,
+        thermal_state=thermal,
+        recorded_at=datetime.utcnow(),
+    )
     db.add(m)
     db.commit()
     return {"ok": True}
@@ -123,4 +132,3 @@ def runner_finished(body: dict, db: Session = Depends(get_session)):
     db.add(job)
     db.commit()
     return {"ok": True}
-

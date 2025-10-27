@@ -1,5 +1,6 @@
-from pydantic import BaseModel
 from typing import Any
+
+from pydantic import BaseModel
 
 
 class PolicyRuleSet(BaseModel):
@@ -18,4 +19,3 @@ class PolicyIn(BaseModel):
 class PolicyOut(PolicyIn):
     id: str
     version: int
-

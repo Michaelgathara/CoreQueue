@@ -8,4 +8,3 @@ class Team(Base, IdMixin, TimestampMixin):
 
     name: Mapped[str] = mapped_column(unique=True)
     tier: Mapped[str] = mapped_column(default="standard")
-

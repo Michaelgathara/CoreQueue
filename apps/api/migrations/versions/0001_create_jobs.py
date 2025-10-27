@@ -1,14 +1,14 @@
 """create jobs table
 
 Revision ID: 0001_create_jobs
-Revises: 
+Revises:
 Create Date: 2025-10-26 00:00:00
 
 """
-from alembic import op
-import sqlalchemy as sa
-from sqlalchemy.dialects import postgresql
 
+import sqlalchemy as sa
+from alembic import op
+from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
 revision = "0001_create_jobs"
@@ -33,13 +33,23 @@ def upgrade() -> None:
         sa.Column("runner_id", sa.String(), nullable=True),
         sa.Column("exit_code", sa.Integer(), nullable=True),
         sa.Column("error", sa.Text(), nullable=True),
-        sa.Column("created_at", sa.DateTime(timezone=False), server_default=sa.func.now(), nullable=False),
-        sa.Column("updated_at", sa.DateTime(timezone=False), server_default=sa.func.now(), nullable=False),
+        sa.Column(
+            "created_at",
+            sa.DateTime(timezone=False),
+            server_default=sa.func.now(),
+            nullable=False,
+        ),
+        sa.Column(
+            "updated_at",
+            sa.DateTime(timezone=False),
+            server_default=sa.func.now(),
+            nullable=False,
+        ),
     )
-    op.create_index("ix_jobs_state", "jobs", ["state"]) 
-    op.create_index("ix_jobs_team_state", "jobs", ["team_id", "state"]) 
-    op.create_index("ix_jobs_queued", "jobs", ["queued_at"]) 
-    op.create_index("ix_jobs_started", "jobs", ["started_at"]) 
+    op.create_index("ix_jobs_state", "jobs", ["state"])
+    op.create_index("ix_jobs_team_state", "jobs", ["team_id", "state"])
+    op.create_index("ix_jobs_queued", "jobs", ["queued_at"])
+    op.create_index("ix_jobs_started", "jobs", ["started_at"])
 
 
 def downgrade() -> None:
@@ -48,4 +58,3 @@ def downgrade() -> None:
     op.drop_index("ix_jobs_team_state", table_name="jobs")
     op.drop_index("ix_jobs_state", table_name="jobs")
     op.drop_table("jobs")
-

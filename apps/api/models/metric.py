@@ -1,6 +1,7 @@
 from datetime import datetime
-from sqlalchemy.orm import Mapped, mapped_column
+
 from sqlalchemy import ForeignKey
+from sqlalchemy.orm import Mapped, mapped_column
 
 from apps.api.models.base import Base, IdMixin
 
@@ -14,4 +15,3 @@ class RunnerMetric(Base, IdMixin):
     mem_gb: Mapped[float]
     thermal_state: Mapped[str]
     recorded_at: Mapped[datetime]
-

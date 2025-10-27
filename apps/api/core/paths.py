@@ -18,4 +18,3 @@ def logs_path(data_root: str, job_id: str) -> Path:
 
 def safe_filename(name: str) -> str:
     return os.path.basename(name)
-

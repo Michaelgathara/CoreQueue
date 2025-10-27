@@ -1,13 +1,16 @@
+import json
 import os
 import time
-import json
+
 import psycopg
 import redis
 
 
 def team_running_count(conn: psycopg.Connection, team_id: str) -> int:
     with conn.cursor() as cur:
-        cur.execute("SELECT count(1) FROM jobs WHERE team_id=%s AND state='RUNNING'", (team_id,))
+        cur.execute(
+            "SELECT count(1) FROM jobs WHERE team_id=%s AND state='RUNNING'", (team_id,)
+        )
         row = cur.fetchone()
         return int(row[0]) if row else 0
 
@@ -64,7 +67,9 @@ def select_runner(conn: psycopg.Connection) -> str | None:
         return row[0] if row else None
 
 
-def select_runner_with_policy(conn: psycopg.Connection, deny_thermal: str | None) -> str | None:
+def select_runner_with_policy(
+    conn: psycopg.Connection, deny_thermal: str | None
+) -> str | None:
     base = """
     WITH latest AS (
       SELECT DISTINCT ON (runner_id)
@@ -122,7 +127,9 @@ def effective_policy_for_team(conn: psycopg.Connection, team_id: str) -> dict:
     return chosen.get("rules", {})
 
 
-def process_job(conn: psycopg.Connection, job_id: str, max_running_per_team: int) -> None:
+def process_job(
+    conn: psycopg.Connection, job_id: str, max_running_per_team: int
+) -> None:
     team_id = get_team_id(conn, job_id)
     if not team_id:
         return
@@ -175,4 +182,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

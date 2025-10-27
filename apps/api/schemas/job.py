@@ -1,6 +1,7 @@
-from pydantic import BaseModel, Field
-from typing import Any, Literal
 from datetime import datetime
+from typing import Any, Literal
+
+from pydantic import BaseModel, Field
 
 
 class JobSpec(BaseModel):
@@ -35,3 +36,9 @@ class JobOut(BaseModel):
     class Config:
         from_attributes = True
 
+
+class JobListOut(BaseModel):
+    items: list[JobOut]
+    total: int
+    page: int
+    limit: int

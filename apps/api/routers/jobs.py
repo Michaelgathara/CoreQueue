@@ -1,15 +1,21 @@
-from fastapi import APIRouter, UploadFile, File, HTTPException, Depends
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
+
 from apps.api.core.config import get_settings
 from apps.api.core.db import get_session
-from apps.api.storage.artifacts import write_artifact, list_artifacts, read_artifact
-from apps.api.storage.logs import read_log, append_log_line
-from apps.api.schemas.job import JobCreate, JobOut
-from apps.api.services.job_service import parse_job_create, create_job, get_job, cancel_job
-
+from apps.api.schemas.job import JobCreate, JobListOut, JobOut
+from apps.api.services.job_service import (
+    cancel_job,
+    create_job,
+    get_job,
+    parse_job_create,
+)
+from apps.api.storage.artifacts import list_artifacts, read_artifact, write_artifact
+from apps.api.storage.logs import append_log_line, read_log
 
 router = APIRouter()
+
 
 @router.post("/jobs/{job_id}/artifacts")
 async def upload_artifact(job_id: str, file: UploadFile = File(...)):
@@ -70,10 +76,39 @@ def get_job_status(job_id: str, db: Session = Depends(get_session)):
     return JobOut.model_validate(job)
 
 
+@router.get("/jobs", response_model=JobListOut)
+def list_jobs(
+    db: Session = Depends(get_session),
+    state: str | None = None,
+    team: str | None = None,
+    owner: str | None = None,
+    page: int = 1,
+    limit: int = 20,
+):
+    from apps.api.models.job import Job
+
+    q = db.query(Job)
+    if state:
+        q = q.filter(Job.state == state)
+    if team:
+        q = q.filter(Job.team_id == team)
+    if owner:
+        q = q.filter(Job.owner_id == owner)
+    total = q.count()
+    items = (
+        q.order_by(Job.queued_at.desc()).offset((page - 1) * limit).limit(limit).all()
+    )
+    return JobListOut(
+        items=[JobOut.model_validate(j) for j in items],
+        total=total,
+        page=page,
+        limit=limit,
+    )
+
+
 @router.post("/jobs/{job_id}/cancel", response_model=JobOut)
 def cancel_job_endpoint(job_id: str, db: Session = Depends(get_session)):
     job = cancel_job(db, job_id)
     if not job:
         raise HTTPException(status_code=404, detail="Not found")
     return JobOut.model_validate(job)
-

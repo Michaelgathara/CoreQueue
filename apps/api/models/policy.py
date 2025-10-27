@@ -1,5 +1,5 @@
-from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.orm import Mapped, mapped_column
 
 from apps.api.models.base import Base, IdMixin, TimestampMixin
 
@@ -12,4 +12,3 @@ class Policy(Base, IdMixin, TimestampMixin):
     rules: Mapped[dict] = mapped_column(JSONB)
     version: Mapped[int] = mapped_column(default=1)
     created_by: Mapped[str] = mapped_column(default="system")
-

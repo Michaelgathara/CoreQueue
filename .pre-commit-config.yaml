@@ -1,17 +1,18 @@
 repos:
+  - repo: https://github.com/pycqa/isort
+    rev: 5.13.2
+    hooks:
+      - id: isort
+        name: isort (backend)
+        args: ["--profile", "black"]
+        files: ^apps/(api|worker)/
+
   - repo: https://github.com/psf/black
     rev: 24.8.0
     hooks:
       - id: black
         name: black (backend)
         language_version: python3
-        files: ^apps/(api|worker)/
-
-  - repo: https://github.com/pycqa/isort
-    rev: 5.13.2
-    hooks:
-      - id: isort
-        name: isort (backend)
         files: ^apps/(api|worker)/
 
   - repo: https://github.com/asottile/pyupgrade
@@ -32,4 +33,14 @@ repos:
         name: trailing-whitespace (backend)
         files: ^apps/(api|worker)/
 
+
+  - repo: local
+    hooks:
+      - id: prettier
+        name: prettier (frontend ts)
+        language: node
+        additional_dependencies:
+          - prettier@3.4.0
+        entry: prettier --write
+        files: ^apps/web/.*\.(ts|tsx)$
 

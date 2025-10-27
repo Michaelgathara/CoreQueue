@@ -17,16 +17,15 @@ def list_artifacts(data_root: str, job_id: str) -> list[str]:
     target_dir = artifacts_dir(data_root, job_id)
     if not target_dir.exists():
         return []
-    
+
     artifacts = []
     for p in target_dir.iterdir():
         if p.is_file():
             artifacts.append(p.name)
-    
+
     return sorted(artifacts)
 
 
 def read_artifact(data_root: str, job_id: str, filename: str) -> Path:
     target_dir = artifacts_dir(data_root, job_id)
     return target_dir / safe_filename(filename)
-

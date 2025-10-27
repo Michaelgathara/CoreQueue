@@ -1,7 +1,8 @@
 from datetime import datetime
-from sqlalchemy.orm import Mapped, mapped_column
+
 from sqlalchemy import ForeignKey
 from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.orm import Mapped, mapped_column
 
 from apps.api.models.base import Base, IdMixin, TimestampMixin
 
@@ -21,4 +22,3 @@ class Job(Base, IdMixin, TimestampMixin):
     runner_id: Mapped[str | None]
     exit_code: Mapped[int | None]
     error: Mapped[str | None]
-

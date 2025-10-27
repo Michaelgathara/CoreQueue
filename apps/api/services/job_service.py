@@ -1,12 +1,13 @@
 from datetime import datetime
 from typing import Any
+
 import yaml
 from sqlalchemy.orm import Session
 
-from apps.api.models.job import Job
-from apps.api.schemas.job import JobCreate, JobSpec
 from apps.api.clients.redis_client import get_redis
 from apps.api.core.config import get_settings
+from apps.api.models.job import Job
+from apps.api.schemas.job import JobCreate, JobSpec
 
 
 def _parse_wall_time_to_seconds(value: Any) -> int:
@@ -66,4 +67,3 @@ def cancel_job(db: Session, job_id: str) -> Job | None:
     db.commit()
     db.refresh(job)
     return job
-

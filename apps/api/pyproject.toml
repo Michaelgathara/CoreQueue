@@ -20,4 +20,3 @@ dependencies = [
 
 [tool.alembic]
 script_location = "migrations"
-

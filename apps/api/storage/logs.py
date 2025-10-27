@@ -12,9 +12,8 @@ def read_log(data_root: str, job_id: str, max_bytes: int | None = None) -> bytes
     path = logs_path(data_root, job_id)
     if not path.exists():
         return b""
-    
+
     data = path.read_bytes()
     if max_bytes is not None and len(data) > max_bytes:
         return data[-max_bytes:]
     return data
-

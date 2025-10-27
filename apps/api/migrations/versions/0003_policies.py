@@ -5,10 +5,10 @@ Revises: 0002_core_entities
 Create Date: 2025-10-26 01:10:00
 
 """
-from alembic import op
-import sqlalchemy as sa
-from sqlalchemy.dialects import postgresql
 
+import sqlalchemy as sa
+from alembic import op
+from sqlalchemy.dialects import postgresql
 
 revision = "0003_policies"
 down_revision = "0002_core_entities"
@@ -25,11 +25,14 @@ def upgrade() -> None:
         sa.Column("rules", postgresql.JSONB(astext_type=sa.Text()), nullable=False),
         sa.Column("version", sa.Integer(), nullable=False, server_default="1"),
         sa.Column("created_by", sa.String(), nullable=False, server_default="system"),
-        sa.Column("created_at", sa.DateTime(), server_default=sa.func.now(), nullable=False),
-        sa.Column("updated_at", sa.DateTime(), server_default=sa.func.now(), nullable=False),
+        sa.Column(
+            "created_at", sa.DateTime(), server_default=sa.func.now(), nullable=False
+        ),
+        sa.Column(
+            "updated_at", sa.DateTime(), server_default=sa.func.now(), nullable=False
+        ),
     )
 
 
 def downgrade() -> None:
     op.drop_table("policies")
-

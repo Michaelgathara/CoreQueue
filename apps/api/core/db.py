@@ -1,10 +1,9 @@
-from sqlalchemy.orm.session import Session
-
+from collections.abc import Iterator
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm.session import Session
 from sqlalchemy.pool import NullPool
-from typing import Iterator
 
 from apps.api.core.config import get_settings
 
@@ -26,4 +25,3 @@ def get_session() -> Iterator["Session"]:
         yield db
     finally:
         db.close()
-
