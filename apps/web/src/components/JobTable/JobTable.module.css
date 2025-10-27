@@ -1,42 +1,106 @@
 .wrap {
-    padding: 24px;
+    padding: 0;
 }
 
 .filters {
     display: flex;
-    gap: 8px;
+    gap: 12px;
     align-items: center;
-    margin-bottom: 12px;
+    margin-bottom: 20px;
+    padding: 16px;
+    background: var(--bg-secondary);
+    border-radius: 8px;
+    border: 1px solid var(--border-primary);
 }
 
 .table {
     width: 100%;
     border-collapse: collapse;
+    background: var(--bg-secondary);
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
 }
 
-.table th,
+.table th {
+    padding: 16px 12px;
+    background: var(--bg-tertiary);
+    color: var(--text-secondary);
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid var(--border-primary);
+}
+
 .table td {
-    padding: 6px 8px;
-    border-bottom: 1px solid #eee;
+    padding: 12px;
+    border-bottom: 1px solid var(--border-primary);
+    color: var(--text-primary);
+}
+
+.table tbody tr {
+    transition: background-color 0.2s ease;
+}
+
+.table tbody tr:hover {
+    background: var(--bg-hover);
+}
+
+.table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.table a {
+    color: var(--button-primary);
+    font-weight: 500;
+}
+
+.table a:hover {
+    color: var(--button-primary-hover);
 }
 
 .pager {
     display: flex;
-    gap: 8px;
+    gap: 12px;
     align-items: center;
-    margin-top: 12px;
+    justify-content: center;
+    margin-top: 20px;
+    padding: 16px;
+}
+
+.pager span {
+    color: var(--text-secondary);
+    font-weight: 500;
 }
 
 .control {
-    padding: 6px 8px;
-    border: 1px solid #ccc;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-primary);
     border-radius: 6px;
+    padding: 8px 12px;
+    color: var(--text-primary);
+    font-size: 14px;
+    min-width: 120px;
 }
 
 .btn {
-    padding: 6px 10px;
-    border: 1px solid #ccc;
-    background: #fafafa;
+    background: var(--button-secondary);
+    border: 1px solid var(--border-primary);
     border-radius: 6px;
+    padding: 8px 16px;
+    color: var(--text-primary);
+    font-weight: 500;
     cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn:hover:not(:disabled) {
+    background: var(--button-secondary-hover);
+    border-color: var(--border-secondary);
+}
+
+.btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
 }

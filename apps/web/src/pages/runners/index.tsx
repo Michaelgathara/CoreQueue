@@ -21,32 +21,145 @@ export default function RunnersPage() {
   return (
     <PageContainer>
       <h1>Runners</h1>
-      <table style={{ width: "100%", marginTop: 12 }}>
-        <thead>
-          <tr>
-            <th align="left">Name</th>
-            <th align="left">Status</th>
-            <th align="left">Last Seen</th>
-          </tr>
-        </thead>
-        <tbody>
-          {pageItems.map((r) => (
-            <tr key={r.id}>
-              <td>{r.name}</td>
-              <td>{r.status}</td>
-              <td>{r.last_seen ?? ""}</td>
+      <div
+        style={{
+          background: "var(--bg-secondary)",
+          border: "1px solid var(--border-primary)",
+          borderRadius: "8px",
+          overflow: "hidden",
+          marginTop: 20,
+        }}
+      >
+        <table style={{ width: "100%", borderCollapse: "collapse" }}>
+          <thead>
+            <tr style={{ background: "var(--bg-tertiary)" }}>
+              <th
+                style={{
+                  padding: "16px 12px",
+                  textAlign: "left",
+                  color: "var(--text-secondary)",
+                  fontWeight: 600,
+                  fontSize: "12px",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.5px",
+                  borderBottom: "1px solid var(--border-primary)",
+                }}
+              >
+                Name
+              </th>
+              <th
+                style={{
+                  padding: "16px 12px",
+                  textAlign: "left",
+                  color: "var(--text-secondary)",
+                  fontWeight: 600,
+                  fontSize: "12px",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.5px",
+                  borderBottom: "1px solid var(--border-primary)",
+                }}
+              >
+                Status
+              </th>
+              <th
+                style={{
+                  padding: "16px 12px",
+                  textAlign: "left",
+                  color: "var(--text-secondary)",
+                  fontWeight: 600,
+                  fontSize: "12px",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.5px",
+                  borderBottom: "1px solid var(--border-primary)",
+                }}
+              >
+                Last Seen
+              </th>
             </tr>
-          ))}
-        </tbody>
-      </table>
-      <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
+          </thead>
+          <tbody>
+            {pageItems.map((r, index) => (
+              <tr
+                key={r.id}
+                style={{
+                  borderBottom:
+                    index < pageItems.length - 1
+                      ? "1px solid var(--border-primary)"
+                      : "none",
+                }}
+              >
+                <td
+                  style={{
+                    padding: "12px",
+                    color: "var(--text-primary)",
+                    fontWeight: 500,
+                  }}
+                >
+                  {r.name}
+                </td>
+                <td style={{ padding: "12px" }}>
+                  <span
+                    style={{
+                      padding: "4px 8px",
+                      borderRadius: "4px",
+                      fontSize: "12px",
+                      fontWeight: 500,
+                      textTransform: "uppercase",
+                      background:
+                        r.status === "ACTIVE"
+                          ? "var(--success-bg)"
+                          : r.status === "INACTIVE"
+                            ? "var(--error-bg)"
+                            : "var(--warning-bg)",
+                      color:
+                        r.status === "ACTIVE"
+                          ? "var(--success)"
+                          : r.status === "INACTIVE"
+                            ? "var(--error)"
+                            : "var(--warning)",
+                    }}
+                  >
+                    {r.status}
+                  </span>
+                </td>
+                <td
+                  style={{
+                    padding: "12px",
+                    color: "var(--text-secondary)",
+                    fontSize: "14px",
+                  }}
+                >
+                  {r.last_seen ?? "Never"}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <div
+        style={{
+          display: "flex",
+          gap: 12,
+          alignItems: "center",
+          justifyContent: "center",
+          marginTop: 20,
+          padding: 16,
+        }}
+      >
         <button
           onClick={() => setPage((p) => Math.max(1, p - 1))}
           disabled={page <= 1}
         >
-          Prev
+          Previous
         </button>
-        <span>Page {page}</span>
+        <span
+          style={{
+            color: "var(--text-secondary)",
+            fontWeight: 500,
+          }}
+        >
+          Page {page}
+        </span>
         <button
           onClick={() =>
             setPage((p) => (p * pageSize < items.length ? p + 1 : p))
