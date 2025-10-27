@@ -7,7 +7,7 @@ from sqlalchemy import pool
 from alembic import context
 
 from apps.api.core.config import get_settings
-from apps.api.models import Base  # import models to register metadata
+from apps.api.models import Base
 
 
 config = context.config
