@@ -1,0 +1,42 @@
+.wrap {
+    padding: 24px;
+}
+
+.filters {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.table th,
+.table td {
+    padding: 6px 8px;
+    border-bottom: 1px solid #eee;
+}
+
+.pager {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-top: 12px;
+}
+
+.control {
+    padding: 6px 8px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+}
+
+.btn {
+    padding: 6px 10px;
+    border: 1px solid #ccc;
+    background: #fafafa;
+    border-radius: 6px;
+    cursor: pointer;
+}

@@ -1,0 +1,27 @@
+.wrap {
+    padding: 24px;
+    display: grid;
+    gap: 12px;
+}
+
+.section {
+    border-top: 1px solid #eee;
+    padding-top: 12px;
+}
+
+.log {
+    background: #111;
+    color: #eee;
+    padding: 12px;
+    max-height: 300px;
+    overflow: auto;
+    white-space: pre-wrap;
+}
+
+.btn {
+    padding: 6px 10px;
+    border: 1px solid #ccc;
+    background: #fafafa;
+    border-radius: 6px;
+    cursor: pointer;
+}
