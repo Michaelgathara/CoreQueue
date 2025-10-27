@@ -1,5 +1,6 @@
 import os
 import time
+import json
 import psycopg
 import redis
 
@@ -16,6 +17,21 @@ def get_team_id(conn: psycopg.Connection, job_id: str) -> str:
         cur.execute("SELECT team_id FROM jobs WHERE id=%s", (job_id,))
         row = cur.fetchone()
         return row[0] if row else ""
+
+
+def get_job_spec(conn: psycopg.Connection, job_id: str):
+    with conn.cursor() as cur:
+        cur.execute("SELECT spec FROM jobs WHERE id=%s", (job_id,))
+        row = cur.fetchone()
+        if not row:
+            return {}
+        spec = row[0]
+        if isinstance(spec, str):
+            try:
+                return json.loads(spec)
+            except Exception:
+                return {}
+        return spec
 
 
 def select_runner(conn: psycopg.Connection) -> str | None:
@@ -62,18 +78,13 @@ def process_job(conn: psycopg.Connection, job_id: str, max_running_per_team: int
         r = redis.from_url(os.getenv("REDIS_URL", "redis://localhost:6379/0"))
         r.rpush("queue:jobs:default", job_id)
         return
-    with conn.cursor() as cur:
-        cur.execute(
-            "UPDATE jobs SET state='RUNNING', started_at=now(), runner_id=%s WHERE id=%s AND state='QUEUED'",
-            (runner_id, job_id),
-        )
-        cur.execute("UPDATE runners SET status='busy', last_seen=now() WHERE id=%s", (runner_id,))
-        cur.execute(
-            "UPDATE jobs SET state='SUCCEEDED', finished_at=now() WHERE id=%s AND state='RUNNING'",
-            (job_id,),
-        )
-        cur.execute("UPDATE runners SET status='idle', last_seen=now() WHERE id=%s", (runner_id,))
-        conn.commit()
+    # push assignment to per-runner queue; runner will claim and transition states
+    r = redis.from_url(os.getenv("REDIS_URL", "redis://localhost:6379/0"))
+    payload = {
+        "job_id": job_id,
+        "spec": get_job_spec(conn, job_id),
+    }
+    r.lpush(f"runner:{runner_id}:assignments", json.dumps(payload))
 
 
 def main() -> None:

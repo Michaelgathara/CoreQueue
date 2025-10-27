@@ -5,6 +5,8 @@ from sqlalchemy.orm import Session
 from apps.api.core.db import get_session
 from apps.api.models.runner import Runner
 from apps.api.models.metric import RunnerMetric
+from apps.api.models.job import Job
+from apps.api.clients.redis_client import get_redis
 
 
 router = APIRouter()
@@ -60,7 +62,65 @@ def ingest_telemetry(body: dict, db: Session = Depends(get_session)):
 
 
 @router.post("/runners/claim")
-def claim_job(body: dict):
-    # Placeholder: scheduler will assign jobs; return none for now
-    return None
+def claim_job(body: dict, db: Session = Depends(get_session)):
+    runner_id = body.get("runner_id")
+    if not runner_id:
+        raise HTTPException(status_code=400, detail="runner_id required")
+    r = get_redis()
+    item = r.brpop(f"runner:{runner_id}:assignments", timeout=1)
+    if not item:
+        return {"job": None}
+    _, raw = item
+    import json
+
+    data = json.loads(raw)
+    job_id = data.get("job_id")
+    job = db.get(Job, job_id)
+    if not job:
+        return {"job": None}
+    if job.state != "QUEUED":
+        return {"job": None}
+    job.state = "CLAIMED"
+    job.runner_id = runner_id
+    db.add(job)
+    db.commit()
+    return {"job_id": job.id, "spec": job.spec}
+
+
+@router.post("/runners/started")
+def runner_started(body: dict, db: Session = Depends(get_session)):
+    job_id = body.get("job_id")
+    runner_id = body.get("runner_id")
+    if not job_id or not runner_id:
+        raise HTTPException(status_code=400, detail="job_id and runner_id required")
+    job = db.get(Job, job_id)
+    if not job:
+        raise HTTPException(status_code=404, detail="job not found")
+    job.state = "RUNNING"
+    job.started_at = datetime.utcnow()
+    job.runner_id = runner_id
+    db.add(job)
+    db.commit()
+    return {"ok": True}
+
+
+@router.post("/runners/finished")
+def runner_finished(body: dict, db: Session = Depends(get_session)):
+    job_id = body.get("job_id")
+    runner_id = body.get("runner_id")
+    exit_code = body.get("exit_code", 0)
+    error = body.get("error")
+    if not job_id or not runner_id:
+        raise HTTPException(status_code=400, detail="job_id and runner_id required")
+    job = db.get(Job, job_id)
+    if not job:
+        raise HTTPException(status_code=404, detail="job not found")
+    job.state = "SUCCEEDED" if int(exit_code) == 0 else "FAILED"
+    job.finished_at = datetime.utcnow()
+    job.runner_id = runner_id
+    job.exit_code = int(exit_code)
+    job.error = error
+    db.add(job)
+    db.commit()
+    return {"ok": True}
 
