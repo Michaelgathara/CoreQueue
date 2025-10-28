@@ -4,6 +4,7 @@ import { listPolicies, applyPolicy } from "src/api/policies";
 import { PageContainer } from "src/components/Layout/PageContainer";
 import { Loading } from "src/components/Common/Loading";
 import { ErrorMessage } from "src/components/Common/ErrorMessage";
+import styles from "./policies.module.css";
 
 export default function PoliciesPage() {
   const qc = useQueryClient();
@@ -33,82 +34,28 @@ export default function PoliciesPage() {
       <h1>Policies</h1>
       <section>
         <h2>Existing Policies</h2>
-        <div
-          style={{
-            background: "var(--bg-secondary)",
-            border: "1px solid var(--border-primary)",
-            borderRadius: "8px",
-            overflow: "hidden",
-          }}
-        >
+        <div className={styles.existingPoliciesContainer}>
           {listQ.data?.policies.length === 0 ? (
-            <div
-              style={{
-                padding: "24px",
-                textAlign: "center",
-                color: "var(--text-tertiary)",
-              }}
-            >
+            <div className={styles.noPoliciesMessage}>
               No policies configured
             </div>
           ) : (
-            <ul style={{ margin: 0 }}>
+            <ul className={styles.policiesList}>
               {listQ.data?.policies.map((p) => (
-                <li
-                  key={p.id}
-                  style={{
-                    padding: "16px 20px",
-                    borderBottom: "1px solid var(--border-primary)",
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: "8px",
-                  }}
-                >
-                  <div
-                    style={{
-                      fontWeight: 600,
-                      color: "var(--text-primary)",
-                      fontSize: "16px",
-                    }}
-                  >
+                <li key={p.id} className={styles.policyItem}>
+                  <div className={styles.policyHeader}>
                     {p.name}{" "}
-                    <span
-                      style={{
-                        color: "var(--text-tertiary)",
-                        fontSize: "14px",
-                        fontWeight: 400,
-                      }}
-                    >
-                      v{p.version}
-                    </span>
+                    <span className={styles.policyVersion}>v{p.version}</span>
                   </div>
-                  <div
-                    style={{ fontSize: "14px", color: "var(--text-secondary)" }}
-                  >
+                  <div className={styles.policyDetail}>
                     <strong>Match:</strong>{" "}
-                    <code
-                      style={{
-                        background: "var(--bg-tertiary)",
-                        padding: "2px 6px",
-                        borderRadius: "4px",
-                        fontSize: "12px",
-                      }}
-                    >
+                    <code className={styles.policyCode}>
                       {JSON.stringify(p.match)}
                     </code>
                   </div>
-                  <div
-                    style={{ fontSize: "14px", color: "var(--text-secondary)" }}
-                  >
+                  <div className={styles.policyDetail}>
                     <strong>Rules:</strong>{" "}
-                    <code
-                      style={{
-                        background: "var(--bg-tertiary)",
-                        padding: "2px 6px",
-                        borderRadius: "4px",
-                        fontSize: "12px",
-                      }}
-                    >
+                    <code className={styles.policyCode}>
                       {JSON.stringify(p.rules)}
                     </code>
                   </div>
@@ -118,93 +65,43 @@ export default function PoliciesPage() {
           )}
         </div>
       </section>
-      <section style={{ marginTop: 32 }}>
+      <section className={styles.newPolicySection}>
         <h2>Apply New Policy</h2>
-        <div
-          style={{
-            background: "var(--bg-secondary)",
-            border: "1px solid var(--border-primary)",
-            borderRadius: "8px",
-            padding: "24px",
-            display: "grid",
-            gap: "20px",
-            maxWidth: "800px",
-          }}
-        >
-          <div style={{ display: "grid", gap: "8px" }}>
-            <label
-              style={{
-                color: "var(--text-secondary)",
-                fontWeight: 500,
-                fontSize: "14px",
-              }}
-            >
-              Policy Name
-            </label>
+        <div className={styles.newPolicyContainer}>
+          <div className={styles.formGroup}>
+            <label className={styles.formLabel}>Policy Name</label>
             <input
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="e.g., team-policy"
-              style={{ width: "100%" }}
+              className={styles.formInput}
             />
           </div>
-          <div style={{ display: "grid", gap: "8px" }}>
-            <label
-              style={{
-                color: "var(--text-secondary)",
-                fontWeight: 500,
-                fontSize: "14px",
-              }}
-            >
-              Match Criteria (JSON)
-            </label>
+          <div className={styles.formGroup}>
+            <label className={styles.formLabel}>Match Criteria (JSON)</label>
             <textarea
-              style={{
-                width: "100%",
-                height: 120,
-                fontFamily:
-                  'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
-                fontSize: "13px",
-              }}
+              className={styles.formTextarea}
               value={match}
               onChange={(e) => setMatch(e.target.value)}
               placeholder='{"team": "example-team"}'
             />
           </div>
-          <div style={{ display: "grid", gap: "8px" }}>
-            <label
-              style={{
-                color: "var(--text-secondary)",
-                fontWeight: 500,
-                fontSize: "14px",
-              }}
-            >
-              Policy Rules (JSON)
-            </label>
+          <div className={styles.formGroup}>
+            <label className={styles.formLabel}>Policy Rules (JSON)</label>
             <textarea
-              style={{
-                width: "100%",
-                height: 160,
-                fontFamily:
-                  'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
-                fontSize: "13px",
-              }}
+              className={styles.formTextareaLarge}
               value={rules}
               onChange={(e) => setRules(e.target.value)}
               placeholder='{"max_concurrent_gpu_jobs": 2, "max_wall_time": "01:00:00"}'
             />
           </div>
-          <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
+          <div className={styles.buttonGroup}>
             <button
               onClick={async () => {
                 const r = await applyM.mutateAsync(true);
                 setDry(r);
               }}
-              style={{
-                background: "var(--warning)",
-                borderColor: "var(--warning)",
-                color: "white",
-              }}
+              className={styles.dryRunButton}
             >
               Dry Run
             </button>
@@ -217,30 +114,9 @@ export default function PoliciesPage() {
             </button>
           </div>
           {dry ? (
-            <div style={{ marginTop: "8px" }}>
-              <h3
-                style={{
-                  fontSize: "14px",
-                  color: "var(--text-secondary)",
-                  marginBottom: "8px",
-                  textTransform: "uppercase",
-                  letterSpacing: "0.5px",
-                }}
-              >
-                Dry Run Result
-              </h3>
-              <pre
-                style={{
-                  background: "var(--bg-tertiary)",
-                  color: "var(--text-primary)",
-                  padding: "16px",
-                  borderRadius: "6px",
-                  border: "1px solid var(--border-primary)",
-                  fontSize: "12px",
-                  lineHeight: "1.5",
-                  overflow: "auto",
-                }}
-              >
+            <div className={styles.dryRunResult}>
+              <h3 className={styles.dryRunTitle}>Dry Run Result</h3>
+              <pre className={styles.dryRunPre}>
                 {JSON.stringify(dry, null, 2)}
               </pre>
             </div>
