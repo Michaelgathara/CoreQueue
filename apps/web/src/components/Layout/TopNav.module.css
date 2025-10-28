@@ -2,15 +2,37 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 16px;
-  border-bottom: 1px solid #e5e5e5;
+  padding: 16px 24px;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-primary);
+  box-shadow: var(--shadow-sm);
 }
-.links a {
-  margin-right: 12px;
-  text-decoration: none;
-  color: #333;
-}
+
 .title {
-  font-weight: 600;
+  font-weight: 700;
+  font-size: 20px;
+  color: var(--text-primary);
+  letter-spacing: -0.5px;
+}
+
+.links {
+  display: flex;
+  gap: 24px;
+  align-items: center;
+}
+
+.links a {
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-weight: 500;
+  padding: 8px 12px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.links a:hover {
+  color: var(--text-primary);
+  background: var(--bg-hover);
 }
 

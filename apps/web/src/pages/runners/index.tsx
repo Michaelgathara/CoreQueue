@@ -4,6 +4,7 @@ import { PageContainer } from "src/components/Layout/PageContainer";
 import { Loading } from "src/components/Common/Loading";
 import { ErrorMessage } from "src/components/Common/ErrorMessage";
 import { useState } from "react";
+import styles from "./runners.module.css";
 
 export default function RunnersPage() {
   const { data, isLoading, error } = useQuery({
@@ -21,32 +22,55 @@ export default function RunnersPage() {
   return (
     <PageContainer>
       <h1>Runners</h1>
-      <table style={{ width: "100%", marginTop: 12 }}>
-        <thead>
-          <tr>
-            <th align="left">Name</th>
-            <th align="left">Status</th>
-            <th align="left">Last Seen</th>
-          </tr>
-        </thead>
-        <tbody>
-          {pageItems.map((r) => (
-            <tr key={r.id}>
-              <td>{r.name}</td>
-              <td>{r.status}</td>
-              <td>{r.last_seen ?? ""}</td>
+      <div className={styles.tableContainer}>
+        <table className={styles.table}>
+          <thead>
+            <tr className={styles.tableHeader}>
+              <th className={styles.tableHeaderCell}>Name</th>
+              <th className={styles.tableHeaderCell}>Status</th>
+              <th className={styles.tableHeaderCell}>Last Seen</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
-      <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
+          </thead>
+          <tbody>
+            {pageItems.map((r, index) => (
+              <tr
+                key={r.id}
+                className={
+                  index < pageItems.length - 1
+                    ? styles.tableRow
+                    : styles.tableRowLast
+                }
+              >
+                <td className={styles.tableCellName}>{r.name}</td>
+                <td className={styles.tableCellDefault}>
+                  <span
+                    className={`${styles.statusBadge} ${
+                      r.status === "ACTIVE"
+                        ? styles.statusActive
+                        : r.status === "INACTIVE"
+                          ? styles.statusInactive
+                          : styles.statusOther
+                    }`}
+                  >
+                    {r.status}
+                  </span>
+                </td>
+                <td className={styles.tableCellSecondary}>
+                  {r.last_seen ?? "Never"}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <div className={styles.pagination}>
         <button
           onClick={() => setPage((p) => Math.max(1, p - 1))}
           disabled={page <= 1}
         >
-          Prev
+          Previous
         </button>
-        <span>Page {page}</span>
+        <span className={styles.pageInfo}>Page {page}</span>
         <button
           onClick={() =>
             setPage((p) => (p * pageSize < items.length ? p + 1 : p))

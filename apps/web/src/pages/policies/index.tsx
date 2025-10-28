@@ -4,6 +4,7 @@ import { listPolicies, applyPolicy } from "src/api/policies";
 import { PageContainer } from "src/components/Layout/PageContainer";
 import { Loading } from "src/components/Common/Loading";
 import { ErrorMessage } from "src/components/Common/ErrorMessage";
+import styles from "./policies.module.css";
 
 export default function PoliciesPage() {
   const qc = useQueryClient();
@@ -32,66 +33,93 @@ export default function PoliciesPage() {
     <PageContainer>
       <h1>Policies</h1>
       <section>
-        <h2>Existing</h2>
-        <ul>
-          {listQ.data?.policies.map((p) => (
-            <li key={p.id}>
-              {p.name} v{p.version} — match: {JSON.stringify(p.match)} rules:{" "}
-              {JSON.stringify(p.rules)}
-            </li>
-          ))}
-        </ul>
+        <h2>Existing Policies</h2>
+        <div className={styles.existingPoliciesContainer}>
+          {listQ.data?.policies.length === 0 ? (
+            <div className={styles.noPoliciesMessage}>
+              No policies configured
+            </div>
+          ) : (
+            <ul className={styles.policiesList}>
+              {listQ.data?.policies.map((p) => (
+                <li key={p.id} className={styles.policyItem}>
+                  <div className={styles.policyHeader}>
+                    {p.name}{" "}
+                    <span className={styles.policyVersion}>v{p.version}</span>
+                  </div>
+                  <div className={styles.policyDetail}>
+                    <strong>Match:</strong>{" "}
+                    <code className={styles.policyCode}>
+                      {JSON.stringify(p.match)}
+                    </code>
+                  </div>
+                  <div className={styles.policyDetail}>
+                    <strong>Rules:</strong>{" "}
+                    <code className={styles.policyCode}>
+                      {JSON.stringify(p.rules)}
+                    </code>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
       </section>
-      <section style={{ marginTop: 24 }}>
-        <h2>Apply</h2>
-        <div>
-          <div>
-            <label>Name</label>
-            <input value={name} onChange={(e) => setName(e.target.value)} />
+      <section className={styles.newPolicySection}>
+        <h2>Apply New Policy</h2>
+        <div className={styles.newPolicyContainer}>
+          <div className={styles.formGroup}>
+            <label className={styles.formLabel}>Policy Name</label>
+            <input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="e.g., team-policy"
+              className={styles.formInput}
+            />
           </div>
-          <div>
-            <label>Match (JSON)</label>
+          <div className={styles.formGroup}>
+            <label className={styles.formLabel}>Match Criteria (JSON)</label>
             <textarea
-              style={{ width: "100%", height: 120 }}
+              className={styles.formTextarea}
               value={match}
               onChange={(e) => setMatch(e.target.value)}
+              placeholder='{"team": "example-team"}'
             />
           </div>
-          <div>
-            <label>Rules (JSON)</label>
+          <div className={styles.formGroup}>
+            <label className={styles.formLabel}>Policy Rules (JSON)</label>
             <textarea
-              style={{ width: "100%", height: 160 }}
+              className={styles.formTextareaLarge}
               value={rules}
               onChange={(e) => setRules(e.target.value)}
+              placeholder='{"max_concurrent_gpu_jobs": 2, "max_wall_time": "01:00:00"}'
             />
           </div>
-          <div style={{ display: "flex", gap: 8 }}>
+          <div className={styles.buttonGroup}>
             <button
               onClick={async () => {
                 const r = await applyM.mutateAsync(true);
                 setDry(r);
               }}
+              className={styles.dryRunButton}
             >
               Dry Run
             </button>
             <button
+              className="primary"
               onClick={() => applyM.mutate(false)}
               disabled={applyM.isPending}
             >
-              Apply
+              {applyM.isPending ? "Applying..." : "Apply Policy"}
             </button>
           </div>
           {dry ? (
-            <pre
-              style={{
-                background: "#111",
-                color: "#eee",
-                padding: 8,
-                marginTop: 8,
-              }}
-            >
-              {JSON.stringify(dry, null, 2)}
-            </pre>
+            <div className={styles.dryRunResult}>
+              <h3 className={styles.dryRunTitle}>Dry Run Result</h3>
+              <pre className={styles.dryRunPre}>
+                {JSON.stringify(dry, null, 2)}
+              </pre>
+            </div>
           ) : null}
         </div>
       </section>
