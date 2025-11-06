@@ -1,0 +1,88 @@
+.tableContainer {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
+  border-radius: 8px;
+  overflow: hidden;
+  margin-top: 20px;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.tableHeader {
+  background: var(--bg-tertiary);
+}
+
+.tableHeaderCell {
+  padding: 16px 12px;
+  text-align: left;
+  color: var(--text-secondary);
+  font-weight: 600;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid var(--border-primary);
+}
+
+.tableRow {
+  border-bottom: 1px solid var(--border-primary);
+}
+
+.tableRowLast {
+  border-bottom: none;
+}
+
+.tableCellName {
+  padding: 12px;
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.tableCellDefault {
+  padding: 12px;
+}
+
+.tableCellSecondary {
+  padding: 12px;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.statusBadge {
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+.statusActive {
+  background: var(--success-bg);
+  color: var(--success);
+}
+
+.statusInactive {
+  background: var(--error-bg);
+  color: var(--error);
+}
+
+.statusOther {
+  background: var(--warning-bg);
+  color: var(--warning);
+}
+
+.pagination {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: center;
+  margin-top: 20px;
+  padding: 16px;
+}
+
+.pageInfo {
+  color: var(--text-secondary);
+  font-weight: 500;
+}

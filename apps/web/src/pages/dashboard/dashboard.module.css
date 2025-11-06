@@ -1,0 +1,55 @@
+.metricsGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.violationsTitle {
+  margin-top: 32px;
+}
+
+.violationsContainer {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
+  border-radius: 8px;
+  padding: 20px;
+  display: grid;
+  gap: 12px;
+}
+
+.violationRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border-primary);
+}
+
+.violationRowLast {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+}
+
+.violationLabel {
+  color: var(--text-secondary);
+}
+
+.violationValue {
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.violationValueError {
+  color: var(--error);
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.violationValueSuccess {
+  color: var(--success);
+  font-weight: 600;
+  font-size: 16px;
+}

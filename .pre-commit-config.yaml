@@ -1,0 +1,46 @@
+repos:
+  - repo: https://github.com/pycqa/isort
+    rev: 5.13.2
+    hooks:
+      - id: isort
+        name: isort (backend)
+        args: ["--profile", "black"]
+        files: ^apps/(api|worker)/
+
+  - repo: https://github.com/psf/black
+    rev: 24.8.0
+    hooks:
+      - id: black
+        name: black (backend)
+        language_version: python3
+        files: ^apps/(api|worker)/
+
+  - repo: https://github.com/asottile/pyupgrade
+    rev: v3.19.0
+    hooks:
+      - id: pyupgrade
+        name: pyupgrade (py311+)
+        args: [--py311-plus]
+        files: ^apps/(api|worker)/
+
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: end-of-file-fixer
+        name: end-of-file-fixer (backend)
+        files: ^apps/(api|worker)/
+      - id: trailing-whitespace
+        name: trailing-whitespace (backend)
+        files: ^apps/(api|worker)/
+
+
+  - repo: local
+    hooks:
+      - id: prettier
+        name: prettier (frontend ts)
+        language: node
+        additional_dependencies:
+          - prettier@3.4.0
+        entry: prettier --write
+        files: ^apps/web/.*\.(ts|tsx)$
+

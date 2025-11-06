@@ -1,13 +1,53 @@
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  /* Dark theme color palette */
+  --bg-primary: #0f0f0f;
+  --bg-secondary: #1a1a1a;
+  --bg-tertiary: #262626;
+  --bg-hover: #2a2a2a;
+  --bg-active: #333333;
+  
+  /* Text colors */
+  --text-primary: #ffffff;
+  --text-secondary: #b3b3b3;
+  --text-tertiary: #808080;
+  --text-muted: #666666;
+  
+  /* Border colors */
+  --border-primary: #333333;
+  --border-secondary: #404040;
+  --border-focus: #4a9eff;
+  
+  /* Status colors */
+  --success: #22c55e;
+  --success-bg: #052e16;
+  --warning: #f59e0b;
+  --warning-bg: #1c1917;
+  --error: #ef4444;
+  --error-bg: #1c1917;
+  --info: #3b82f6;
+  --info-bg: #0c1e3e;
+  
+  /* Job state colors */
+  --state-queued: #f59e0b;
+  --state-running: #3b82f6;
+  --state-succeeded: #22c55e;
+  --state-failed: #ef4444;
+  --state-cancelled: #6b7280;
+  
+  /* Interactive elements */
+  --button-primary: #4a9eff;
+  --button-primary-hover: #3b82f6;
+  --button-secondary: var(--bg-tertiary);
+  --button-secondary-hover: var(--bg-hover);
+  
+  /* Shadows */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+  
+  /* Legacy variables for compatibility */
+  --background: var(--bg-primary);
+  --foreground: var(--text-primary);
 }
 
 html,
@@ -17,11 +57,12 @@ body {
 }
 
 body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  color: var(--text-primary);
+  background: var(--bg-primary);
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Helvetica Neue, Arial, "Apple Color Emoji", "Segoe UI Emoji";
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  line-height: 1.6;
 }
 
 * {
@@ -31,8 +72,123 @@ body {
 }
 
 a {
-  color: inherit;
+  color: var(--button-primary);
   text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+a:hover {
+  color: var(--button-primary-hover);
+}
+
+/* Typography */
+h1 { 
+  font-size: 24px; 
+  font-weight: 600; 
+  margin: 0 0 12px; 
+  color: var(--text-primary);
+}
+
+h2 { 
+  font-size: 20px; 
+  font-weight: 600; 
+  margin: 24px 0 12px; 
+  color: var(--text-primary);
+}
+
+h3 { 
+  font-size: 18px; 
+  font-weight: 500; 
+  margin: 16px 0 8px; 
+  color: var(--text-secondary);
+}
+
+p { 
+  margin: 0 0 12px; 
+  color: var(--text-secondary);
+}
+
+/* Tables */
+table { 
+  font-size: 14px;
+  width: 100%;
+  border-collapse: collapse;
+}
+
+/* Form elements */
+input, textarea, select {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
+  border-radius: 6px;
+  padding: 8px 12px;
+  color: var(--text-primary);
+  font-size: 14px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+input:focus, textarea:focus, select:focus {
+  outline: none;
+  border-color: var(--border-focus);
+  box-shadow: 0 0 0 3px rgba(74, 158, 255, 0.1);
+}
+
+input::placeholder, textarea::placeholder {
+  color: var(--text-muted);
+}
+
+/* Buttons */
+button {
+  background: var(--button-secondary);
+  border: 1px solid var(--border-primary);
+  border-radius: 6px;
+  padding: 8px 16px;
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+button:hover:not(:disabled) {
+  background: var(--button-secondary-hover);
+  border-color: var(--border-secondary);
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+button.primary {
+  background: var(--button-primary);
+  border-color: var(--button-primary);
+  color: white;
+}
+
+button.primary:hover:not(:disabled) {
+  background: var(--button-primary-hover);
+  border-color: var(--button-primary-hover);
+}
+
+/* Lists */
+ul {
+  list-style: none;
+}
+
+li {
+  margin: 4px 0;
+}
+
+/* Home page card hover effects */
+a[href^="/dashboard"]:hover,
+a[href^="/jobs"]:hover,
+a[href^="/submit"]:hover,
+a[href^="/runners"]:hover,
+a[href^="/policies"]:hover {
+  background: var(--bg-hover) !important;
+  border-color: var(--border-secondary) !important;
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md) !important;
 }
 
 @media (prefers-color-scheme: dark) {

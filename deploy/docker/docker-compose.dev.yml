@@ -15,39 +15,36 @@ services:
   redis:
     image: redis:7
     ports:
-      - "6379:6379"
-
-  minio:
-    image: quay.io/minio/minio:RELEASE.2024-10-02T17-50-41Z
-    command: server /data --console-address ":9001"
-    environment:
-      MINIO_ROOT_USER: corequeue
-      MINIO_ROOT_PASSWORD: corequeue123
-    ports:
-      - "9000:9000"
-      - "9001:9001"
-    volumes:
-      - minio_data:/data
+      - "6379:6379"  
 
   api:
     build:
       context: ../..
       dockerfile: deploy/docker/api.Dockerfile
+    environment:
+      DATABASE_URL: postgresql+psycopg://corequeue:corequeue@db:5432/corequeue
+      REDIS_URL: redis://redis:6379/0
+      ALLOWED_ORIGINS: http://localhost:3000,http://localhost
+      DATA_ROOT: /data
     command: uvicorn apps.api.main:app --host 0.0.0.0 --port 8000 --reload
     depends_on:
       - db
       - redis
-      - minio
     ports:
       - "8000:8000"
     volumes:
       - ../../apps/api:/app/apps/api
       - ../../packages/common:/app/packages/common
+      - ../../data:/data
 
   worker:
     build:
       context: ../..
       dockerfile: deploy/docker/worker.Dockerfile
+    environment:
+      DATABASE_URL: postgresql+psycopg://corequeue:corequeue@db:5432/corequeue
+      REDIS_URL: redis://redis:6379/0
+      DATA_ROOT: /data
     depends_on:
       - api
       - db
@@ -69,6 +66,7 @@ services:
       - ../../apps/web:/app/apps/web
       - /app/apps/web/node_modules
       - ../../packages/common:/app/packages/common
+      - ../../data:/data:ro
 
   nginx:
     image: nginx:1.27
@@ -82,5 +80,4 @@ services:
 
 volumes:
   db_data: {}
-  minio_data: {}
 
