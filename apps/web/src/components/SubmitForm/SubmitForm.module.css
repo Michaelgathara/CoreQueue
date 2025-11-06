@@ -86,3 +86,38 @@
     color: var(--error);
     font-weight: 500;
 }
+
+.grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+.field {
+    display: grid;
+    gap: 6px;
+}
+
+.label {
+    color: var(--text-secondary);
+    font-size: 13px;
+}
+
+.input {
+    padding: 10px 12px;
+    border: 1px solid var(--border-primary);
+    border-radius: 6px;
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+}
+
+.select {
+    padding: 10px 12px;
+    border: 1px solid var(--border-primary);
+    border-radius: 6px;
+}
+
+.hint {
+    color: var(--text-tertiary);
+    font-size: 12px;
+}
