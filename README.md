@@ -23,9 +23,9 @@ End-to-end job orchestration platform with a FastAPI backend, Swift runner, and 
 
 ### Prerequisites
 - Python 3.11+
-- Node 18+ and `pnpm`
-- Swift 5.9+ (for the Runner)
-- PostgreSQL 14+ and Redis 6+
+- Node and `pnpm`
+- Swift (for the Runner)
+- PostgreSQL and Redis 
 - Optional: `uv` (for fast Python dependency management) and `pre-commit`
 
 ### Services (Postgres & Redis)
