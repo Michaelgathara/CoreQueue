@@ -160,23 +160,160 @@ def process_job(
     r.lpush(f"runner:{runner_id}:assignments", json.dumps(payload))
 
 
+def reap_zombies(conn: psycopg.Connection) -> None:
+    """
+    Find jobs stuck in RUNNING state where the runner hasn't checked in recently.
+    Mark them as FAILED.
+    """
+    # If a runner hasn't sent a heartbeat in 60 seconds, assume it's dead.
+    # Note: Runners typically heartbeat every 5s.
+    threshold_seconds = 60
+
+    sql = """
+    SELECT j.id, j.runner_id
+    FROM jobs j
+    JOIN runners r ON j.runner_id = r.id
+    WHERE j.state = 'RUNNING'
+      AND (r.last_seen IS NULL OR r.last_seen < NOW() - INTERVAL '%s seconds')
+    """
+
+    with conn.cursor() as cur:
+        cur.execute(sql, (threshold_seconds,))
+        zombies = cur.fetchall()
+
+        for job_id, runner_id in zombies:
+            print(f"Reaping zombie job {job_id} (runner {runner_id} lost)")
+            cur.execute(
+                """
+                UPDATE jobs
+                SET state='FAILED',
+                    finished_at=NOW(),
+                    error='Runner lost connection (zombie detected)'
+                WHERE id=%s
+                """,
+                (job_id,),
+            )
+
+    conn.commit()
+
+
+def _parse_wall_time(val: str | int | None) -> int:
+    """
+    Parse HH:MM:SS or seconds int into total seconds.
+    Defaults to 1 hour (3600) if invalid/missing.
+    """
+    if isinstance(val, int):
+        return val
+    if isinstance(val, str) and val.count(":") == 2:
+        try:
+            h, m, s = val.split(":")
+            return int(h) * 3600 + int(m) * 60 + int(s)
+        except ValueError:
+            pass
+    return 3600  # default fallback
+
+
+def enforce_timeouts(conn: psycopg.Connection) -> None:
+    """
+    Find jobs that have been running longer than their wall_time limit.
+    Mark them as FAILED.
+    """
+    sql = "SELECT id, spec, started_at FROM jobs WHERE state = 'RUNNING'"
+
+    with conn.cursor() as cur:
+        cur.execute(sql)
+        rows = cur.fetchall()
+
+        now = time.time()
+
+        for job_id, spec, started_at in rows:
+            if not started_at:
+                continue
+
+            job_spec = {}
+            if isinstance(spec, str):
+                try:
+                    job_spec = json.loads(spec)
+                except Exception:
+                    pass
+            elif isinstance(spec, dict):
+                job_spec = spec
+
+            limits = job_spec.get("limits", {})
+            wall_time_input = limits.get("wall_time")
+
+            if not wall_time_input:
+                wall_time_input = job_spec.get("wall_time")
+
+            limit_seconds = _parse_wall_time(wall_time_input)
+            duration = now - started_at.timestamp()
+
+            if duration > limit_seconds:
+                print(
+                    f"Job {job_id} timed out (ran for {duration:.0f}s, limit {limit_seconds}s)"
+                )
+                cur.execute(
+                    """
+                    UPDATE jobs
+                    SET state='FAILED',
+                        finished_at=NOW(),
+                        error='Wall time exceeded'
+                    WHERE id=%s
+                    """,
+                    (job_id,),
+                )
+
+    conn.commit()
+
+
+def prune_metrics(conn: psycopg.Connection) -> None:
+    """
+    Delete metrics older than retention period (default 7 days).
+    """
+    retention_days = int(os.getenv("METRIC_RETENTION_DAYS", "7"))
+    sql = "DELETE FROM runner_metrics WHERE recorded_at < NOW() - INTERVAL '%s days'"
+
+    with conn.cursor() as cur:
+        cur.execute(sql, (retention_days,))
+        if cur.rowcount > 0:
+            print(f"Pruned {cur.rowcount} old metrics")
+
+    conn.commit()
+
+
 def main() -> None:
     redis_url = os.getenv("REDIS_URL", "redis://localhost:6379/0")
     db_url = os.getenv("DATABASE_URL")
     if db_url and db_url.startswith("postgresql+psycopg://"):
         db_url = db_url.replace("postgresql+psycopg://", "postgresql://", 1)
     r = redis.from_url(redis_url)
+
+    last_maintenance_time = 0
+    maintenance_interval = 30  # Run maintenance every 30 seconds
+
     with psycopg.connect(db_url) as conn:
         while True:
+            now = time.time()
+            if now - last_maintenance_time > maintenance_interval:
+                try:
+                    reap_zombies(conn)
+                    enforce_timeouts(conn)
+                    prune_metrics(conn)
+                    last_maintenance_time = now
+                except Exception as e:
+                    print(f"Error in maintenance tasks: {e}")
+                    conn.rollback()
+
             item = r.brpop("queue:jobs:default", timeout=2)
             if not item:
-                time.sleep(0.5)
                 continue
+
             _, job_id = item
             try:
                 max_running = int(os.getenv("MAX_CONCURRENT_RUNNING_PER_TEAM", "2"))
                 process_job(conn, job_id.decode("utf-8"), max_running)
-            except Exception:
+            except Exception as e:
+                print(f"Error processing job {job_id}: {e}")
                 conn.rollback()
 
 

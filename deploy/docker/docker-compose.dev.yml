@@ -17,6 +17,30 @@ services:
     ports:
       - "6379:6379"  
 
+  minio:
+    image: minio/minio
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    command: server /data --console-address ":9001"
+    volumes:
+      - minio_data:/data
+
+  createbuckets:
+    image: minio/mc
+    depends_on:
+      - minio
+    entrypoint: >
+      /bin/sh -c "
+      /usr/bin/mc config host add myminio http://minio:9000 minioadmin minioadmin;
+      /usr/bin/mc mb myminio/corequeue;
+      /usr/bin/mc anonymous set public myminio/corequeue;
+      exit 0;
+      "
+
   api:
     build:
       context: ../..
@@ -26,10 +50,17 @@ services:
       REDIS_URL: redis://redis:6379/0
       ALLOWED_ORIGINS: http://localhost:3000,http://localhost
       DATA_ROOT: /data
+      STORAGE_BACKEND: s3
+      S3_ENDPOINT_URL: http://minio:9000
+      S3_BUCKET_NAME: corequeue
+      S3_ACCESS_KEY_ID: minioadmin
+      S3_SECRET_ACCESS_KEY: minioadmin
+      S3_REGION: us-east-1
     command: uvicorn apps.api.main:app --host 0.0.0.0 --port 8000 --reload
     depends_on:
       - db
       - redis
+      - minio
     ports:
       - "8000:8000"
     volumes:
@@ -80,4 +111,4 @@ services:
 
 volumes:
   db_data: {}
-
+  minio_data: {}
