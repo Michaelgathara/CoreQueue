@@ -9,6 +9,7 @@ class JobSpec(BaseModel):
     owner: str
     team: str
     priority: Literal["low", "normal", "high"] = "normal"
+    image: str | None = None  # Docker image to use (optional)
     resources: dict[str, Any] | None = None
     limits: dict[str, Any] | None = None
     env: dict[str, str] | None = None

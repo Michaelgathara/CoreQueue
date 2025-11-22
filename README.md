@@ -6,14 +6,17 @@ End-to-end job orchestration platform with a FastAPI backend, Swift runner, and 
 - **API (FastAPI)**: Jobs, Runners, Metrics, Policies, Artifacts, Logs, Health.
 - **Database (PostgreSQL + SQLAlchemy + Alembic)**: Versioned schema with core models (`Job`, `Runner`, `RunnerMetric`, `Policy`, `Team`, `User`).
 - **Queueing (Redis)**: Jobs are queued and claimed by runners.
-- **Runner (Swift)**: Registers, heartbeats/telemetry, claims jobs, executes commands, streams logs, uploads artifacts.
+- **Runner (Swift)**: Registers, heartbeats/telemetry, claims jobs, executes commands (Shell or Docker), streams logs, uploads artifacts.
 - **Web (Next.js)**: Dashboard, Jobs (table + detail), Submit, Runners, Policies. Strong typing via tRPC and Zod.
 - **DX & Tooling**: Dark theme, reusable UI components, pre-commit hooks, Docker ignores, modular routers, centralized settings.
+- **Reliability**: Zombie job reaper, execution timeouts, and metric pruning.
+- **Storage**: S3-compatible object storage (MinIO included) for artifacts and logs.
 
 ### Monorepo Structure
 - `apps/api` — FastAPI application, models, routers, services, storage utilities, Alembic.
 - `apps/web` — Next.js app with tRPC client, pages, components, and styling.
 - `apps/runner` — Swift runner package and executable.
+- `apps/worker` — Python background worker for scheduling and maintenance.
 - `deploy/docker` — Dockerfiles and compose files for local/dev builds.
 - `packages/common` — Shared frontend packages (if present in your setup).
 
@@ -25,10 +28,10 @@ End-to-end job orchestration platform with a FastAPI backend, Swift runner, and 
 - Python 3.11+
 - Node and `pnpm`
 - Swift (for the Runner)
-- PostgreSQL and Redis 
+- PostgreSQL, Redis, and MinIO
 - Optional: `uv` (for fast Python dependency management) and `pre-commit`
 
-### Services (Postgres & Redis)
+### Services (Postgres, Redis & MinIO)
 If you use Docker, bring up infra with the provided compose file:
 
 ```bash
@@ -42,6 +45,18 @@ Create a `.env` in the repo root (or export env vars) with at least:
 DATABASE_URL=postgresql+psycopg://postgres:postgres@localhost:5432/corequeue
 REDIS_URL=redis://localhost:6379/0
 DATA_DIR=.data
+
+# Storage (S3/MinIO)
+STORAGE_BACKEND=s3
+S3_ENDPOINT_URL=http://localhost:9000
+S3_BUCKET_NAME=corequeue
+S3_ACCESS_KEY_ID=minioadmin
+S3_SECRET_ACCESS_KEY=minioadmin
+S3_REGION=us-east-1
+
+# Reliability
+METRIC_RETENTION_DAYS=7
+MAX_WALL_TIME_SEC=7200
 ```
 
 ### Backend (API)
@@ -53,7 +68,7 @@ uv sync -p 3.11
 
 # Option B: using pip (fallback)
 python -m venv .venv && . .venv/bin/activate
-pip install -e apps/api
+pip install -e apps/api apps/worker
 
 # Apply migrations
 alembic -c apps/api/alembic.ini upgrade head
@@ -66,6 +81,13 @@ API base defaults to `http://127.0.0.1:8000`. Quick health check:
 
 ```bash
 curl http://127.0.0.1:8000/alive
+```
+
+### Background Worker
+The worker handles scheduling, timeouts, and maintenance.
+
+```bash
+python -m apps.worker.main
 ```
 
 ### Frontend (Web)
@@ -86,7 +108,7 @@ swift build
 swift run corequeue-runner
 ```
 
-The runner registers with the API, sends telemetry, claims jobs, executes their commands, and streams logs/artifacts.
+The runner registers with the API, sends telemetry, claims jobs, executes their commands (optionally in Docker), and streams logs/artifacts.
 
 ---
 
@@ -118,7 +140,8 @@ curl -X POST http://127.0.0.1:8000/jobs/submit \
     "team": "core",
     "priority": "normal",
     "spec": {
-      "entrypoint": "echo Hello && sleep 2 && echo Done",
+      "image": "python:3.11",
+      "entrypoint": "python -c \"print('Hello Docker')\"",
       "artifacts": ["output.log"],
       "env": {"EXAMPLE": "1"}
     },
@@ -135,7 +158,8 @@ owner: michael
 team: core
 priority: normal
 spec:
-  entrypoint: echo Hello && sleep 2 && echo Done
+  image: python:3.11
+  entrypoint: python -c "print('Hello Docker')"
   artifacts:
     - output.log
   env:
@@ -184,7 +208,7 @@ curl http://127.0.0.1:8000/runners
 - **Settings**: Centralized via `pydantic-settings` with `get_settings()` and `.env` support.
 - **Routers**: Modular (`health`, `jobs`, `runners`, `metrics`, `policies`).
 - **Services**: `job_service` (submit, parse wall time, queue, cancel) and `policy_service` (list, apply, dry run).
-- **Storage**: Utilities for job artifacts and logs with safe paths.
+- **Storage**: Abstracted storage provider (S3/MinIO or Local) for artifacts and logs.
 - **Schemas**: Pydantic for API; Zod for frontend validation.
 - **tRPC**: Typed procedures for jobs, runners, metrics, policies.
 
@@ -212,7 +236,7 @@ alembic -c apps/api/alembic.ini upgrade head
 ```
 
 ### Common Issues
-- Ensure `DATABASE_URL` and `REDIS_URL` are reachable before starting API/Runner.
+- Ensure `DATABASE_URL`, `REDIS_URL`, and `S3_` vars are reachable before starting API/Runner.
 - If migrations fail, verify that Alembic points to app metadata in `env.py` and that your virtualenv contains `apps/api`.
 - When running the web app from the repo root workspace, prefer `cd apps/web && pnpm dev` to avoid workspace filter mismatches.
 

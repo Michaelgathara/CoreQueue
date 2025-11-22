@@ -89,8 +89,15 @@ enum RunnerMain {
         _ = try await HTTP.request(startedURL, method: "POST", jsonBody: ["job_id": job.jobId, "runner_id": runnerId])
 
         var exitCode: Int32 = 0
+        
+        let image = job.spec["image"] as? String
+        
         if let runtime = job.spec["runtime"] as? [String: Any], let entry = runtime["entrypoint"] as? String {
-            exitCode = await spawnShell(command: entry, apiBase: apiBase, jobId: job.jobId)
+            if let image = image {
+                exitCode = await spawnDocker(image: image, command: entry, apiBase: apiBase, jobId: job.jobId)
+            } else {
+                exitCode = await spawnShell(command: entry, apiBase: apiBase, jobId: job.jobId)
+            }
         }
 
         let finishedURL = apiBase.appendingPathComponent("/runners/finished")
@@ -98,7 +105,6 @@ enum RunnerMain {
 
         if let artifacts = job.spec["artifacts"] as? [String] {
             for pattern in artifacts {
-                // naive glob expansion for demo: support single file paths
                 let path = NSString(string: pattern).expandingTildeInPath
                 if FileManager.default.fileExists(atPath: path) {
                     let url = apiBase.appendingPathComponent("/jobs/\(job.jobId)/artifacts")
@@ -146,6 +152,37 @@ enum RunnerMain {
         handle.readabilityHandler = nil
         return process.terminationStatus
     }
+    
+    static func spawnDocker(image: String, command: String, apiBase: URL, jobId: String) async -> Int32 {
+        let process = Process()
+        process.launchPath = "/usr/local/bin/docker"
+        process.arguments = ["run", "--rm", image, "/bin/sh", "-c", command]
+        
+        let pipe = Pipe()
+        process.standardOutput = pipe
+        process.standardError = pipe
+        
+        do {
+            try process.run()
+        } catch {
+            // Fallback if docker is not in /usr/local/bin
+            process.launchPath = "/usr/bin/docker"
+            try? process.run()
+        }
+
+        let handle = pipe.fileHandleForReading
+        handle.readabilityHandler = { fh in
+            let data = fh.availableData
+            if data.count > 0, let s = String(data: data, encoding: .utf8) {
+                Task {
+                    let url = apiBase.appendingPathComponent("/jobs/\(jobId)/logs/append")
+                    _ = try? await HTTP.request(url, method: "POST", jsonBody: ["line": s])
+                }
+            }
+        }
+
+        process.waitUntilExit()
+        handle.readabilityHandler = nil
+        return process.terminationStatus
+    }
 }
-
-

@@ -18,6 +18,13 @@ class Settings(BaseSettings):
     )
     max_wall_time_sec: int = Field(default=7200, alias="MAX_WALL_TIME_SEC")
 
+    storage_backend: str = Field(default="local", alias="STORAGE_BACKEND")  # local, s3
+    s3_endpoint_url: str | None = Field(default=None, alias="S3_ENDPOINT_URL")
+    s3_bucket_name: str | None = Field(default=None, alias="S3_BUCKET_NAME")
+    s3_access_key_id: str | None = Field(default=None, alias="S3_ACCESS_KEY_ID")
+    s3_secret_access_key: str | None = Field(default=None, alias="S3_SECRET_ACCESS_KEY")
+    s3_region: str | None = Field(default="us-east-1", alias="S3_REGION")
+
     model_config = {
         "env_file": ".env",
         "extra": "ignore",
